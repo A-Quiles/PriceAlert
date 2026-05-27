@@ -19,9 +19,19 @@ export class NavbarComponent implements OnInit {
   menuOpen = false;
   triggeredCount = 0;
 
-  readonly userInitial = computed(() => {
+  readonly userName = computed(() => {
+    const metadata = this.auth.user()?.user_metadata as { full_name?: string } | undefined;
+    const fullName = metadata?.full_name?.toString().trim();
+    if (fullName) {
+      return fullName;
+    }
+
     const email = this.auth.user()?.email ?? '';
-    return email.charAt(0).toUpperCase();
+    return email.split('@')[0] || '';
+  });
+
+  readonly userInitial = computed(() => {
+    return this.userName().charAt(0).toUpperCase();
   });
 
   ngOnInit(): void {

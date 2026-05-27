@@ -6,6 +6,7 @@ import { Product, CreateProductDto, UpdateProductDto } from '../models';
 import { environment } from '../../../environments/environment';
 
 const CTX = 'ProductsService';
+const MAX_PRODUCTS_PER_USER = 5;
 
 @Injectable({
   providedIn: 'root',
@@ -73,9 +74,9 @@ export class ProductsService {
       throw countError;
     }
 
-    if ((existingCount ?? 0) >= 10) {
+    if ((existingCount ?? 0) >= MAX_PRODUCTS_PER_USER) {
       throw new Error(
-        'Límite de 10 productos alcanzado. Elimina uno antes de añadir otro.',
+        `Límite de ${MAX_PRODUCTS_PER_USER} productos alcanzado. Elimina uno antes de añadir otro.`,
       );
     }
 

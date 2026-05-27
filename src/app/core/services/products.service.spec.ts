@@ -126,11 +126,11 @@ describe('ProductsService', () => {
     });
   });
 
-  // ─── addProduct (límite de 10) ────────────────────────────────────────────
+  // ─── addProduct (límite de 5) ───────────────────────────────────────────
 
-  describe('addProduct() — límite de 10 productos', () => {
-    it('throws when user has 10 or more products', async () => {
-      const chain = makeChain({ count: 10, error: null });
+  describe('addProduct() — límite de 5 productos', () => {
+    it('throws when user has 5 or more products', async () => {
+      const chain = makeChain({ count: 5, error: null });
       mockClient = {
         from: jasmine.createSpy('from').and.callFake(() => chain),
       };
@@ -141,7 +141,7 @@ describe('ProductsService', () => {
 
       await expectAsync(
         service.addProduct({ url: 'https://amazon.es/dp/B001' }),
-      ).toBeRejectedWithError(/L\u00edmite de 10 productos/);
+      ).toBeRejectedWithError(/Límite de 5 productos/);
     });
 
     it('throws when user is not authenticated', async () => {

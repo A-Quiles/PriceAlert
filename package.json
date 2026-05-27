@@ -10,7 +10,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "vercel-build": "npm run build",
-    "api": "tsx --watch dev-server.ts"
+    "api": "tsx dev-server.ts"
   },
   "private": true,
   "dependencies": {

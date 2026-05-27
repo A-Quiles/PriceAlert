@@ -1,0 +1,316 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Alertas de precio</h1>
+      <p class="text-gray-500 text-sm mt-0.5">
+        {{ alerts().length }} alerta{{
+          alerts().length !== 1 ? "s" : ""
+        }}
+        configurada{{ alerts().length !== 1 ? "s" : "" }}
+      </p>
+    </div>
+    <a routerLink="/products/add" class="btn-primary btn-sm">
+      <svg
+        class="w-4 h-4 mr-1"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 4v16m8-8H4"
+        />
+      </svg>
+      Nueva alerta
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-3">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="card p-4">
+          <div class="flex gap-3">
+            <div class="skeleton w-12 h-12 rounded-lg flex-shrink-0"></div>
+            <div class="flex-1 space-y-2">
+              <div class="skeleton h-4 w-3/4 rounded"></div>
+              <div class="skeleton h-3 w-1/2 rounded"></div>
+            </div>
+            <div class="skeleton w-20 h-8 rounded"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (alerts().length === 0) {
+    <div class="card p-12 text-center animate-fade-in">
+      <div
+        class="w-20 h-20 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-4"
+      >
+        <svg
+          class="w-10 h-10 text-brand-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Sin alertas</h3>
+      <p class="text-gray-500 text-sm mb-6">
+        Configura alertas en tus productos para recibir notificaciones por email
+        cuando bajen de precio.
+      </p>
+      <a routerLink="/products/add" class="btn-primary"
+        >Añadir producto con alerta</a
+      >
+    </div>
+  } @else {
+    <!-- Triggered alerts -->
+    @if (triggeredAlerts.length > 0) {
+      <div class="mb-6">
+        <h2
+          class="text-sm font-semibold text-success-700 uppercase tracking-wide mb-3 flex items-center gap-2"
+        >
+          <span
+            class="w-2 h-2 bg-success-500 rounded-full animate-pulse-slow"
+          ></span>
+          Objetivos alcanzados ({{ triggeredAlerts.length }})
+        </h2>
+        <div class="space-y-3">
+          @for (alert of triggeredAlerts; track alert.id) {
+            <div
+              class="card p-4 border-success-200 ring-1 ring-success-100 animate-fade-in"
+            >
+              <div class="flex items-start gap-3">
+                <div
+                  class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100"
+                >
+                  @if (alert.product?.image_url) {
+                    <img
+                      [src]="alert.product!.image_url"
+                      [alt]="alert.product?.title"
+                      class="w-full h-full object-contain p-1"
+                    />
+                  } @else {
+                    <div
+                      class="w-full h-full flex items-center justify-center text-gray-300"
+                    >
+                      <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                        />
+                      </svg>
+                    </div>
+                  }
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 line-clamp-1">
+                    {{ alert.product?.title }}
+                  </p>
+                  <div class="flex items-center gap-2 mt-1 flex-wrap">
+                    <span class="badge-success"> ✓ Objetivo alcanzado </span>
+                    @if (alert.trigger_price) {
+                      <span class="text-xs text-gray-500">
+                        Disparado a
+                        <strong>{{
+                          alert.trigger_price
+                            | currency
+                              : alert.product?.currency ?? "EUR"
+                              : "symbol"
+                              : "1.2-2"
+                        }}</strong>
+                      </span>
+                    }
+                    @if (alert.triggered_at) {
+                      <span class="text-xs text-gray-400">
+                        · {{ alert.triggered_at | date: "d MMM yyyy, HH:mm" }}
+                      </span>
+                    }
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Precio objetivo:
+                    <strong>{{
+                      alert.threshold_price
+                        | currency
+                          : alert.product?.currency ?? "EUR"
+                          : "symbol"
+                          : "1.2-2"
+                    }}</strong>
+                    · Precio actual:
+                    <strong>{{
+                      alert.product?.current_price
+                        | currency
+                          : alert.product?.currency ?? "EUR"
+                          : "symbol"
+                          : "1.2-2"
+                    }}</strong>
+                  </p>
+                </div>
+                <div class="flex gap-1 flex-shrink-0">
+                  <button
+                    (click)="onReset(alert.id)"
+                    class="btn-secondary btn-sm"
+                    title="Reiniciar alerta"
+                  >
+                    Reiniciar
+                  </button>
+                  <button
+                    (click)="onDelete(alert.id)"
+                    class="btn-ghost btn-sm text-danger-600 hover:bg-danger-50"
+                    title="Eliminar"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Pending alerts -->
+    @if (pendingAlerts.length > 0) {
+      <div>
+        <h2
+          class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3"
+        >
+          Vigilando ({{ pendingAlerts.length }})
+        </h2>
+        <div class="space-y-3">
+          @for (alert of pendingAlerts; track alert.id) {
+            <div class="card p-4 animate-fade-in">
+              <div class="flex items-start gap-3">
+                <div
+                  class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100"
+                >
+                  @if (alert.product?.image_url) {
+                    <img
+                      [src]="alert.product!.image_url"
+                      [alt]="alert.product?.title"
+                      class="w-full h-full object-contain p-1"
+                    />
+                  } @else {
+                    <div
+                      class="w-full h-full flex items-center justify-center text-gray-300"
+                    >
+                      <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                        />
+                      </svg>
+                    </div>
+                  }
+                </div>
+                <div class="flex-1 min-w-0">
+                  <a
+                    [routerLink]="['/products', alert.product_id]"
+                    class="text-sm font-medium text-gray-900 hover:text-brand-600 line-clamp-1 transition-colors"
+                  >
+                    {{ alert.product?.title }}
+                  </a>
+                  <div
+                    class="flex items-center gap-3 mt-1 flex-wrap text-xs text-gray-500"
+                  >
+                    <span>
+                      Objetivo:
+                      <strong class="text-gray-900">{{
+                        alert.threshold_price
+                          | currency
+                            : alert.product?.currency ?? "EUR"
+                            : "symbol"
+                            : "1.2-2"
+                      }}</strong>
+                    </span>
+                    <span>
+                      Actual:
+                      <strong
+                        [class.text-danger-600]="
+                          (alert.product?.current_price ?? 999999) >
+                          alert.threshold_price
+                        "
+                      >
+                        {{
+                          alert.product?.current_price
+                            | currency
+                              : alert.product?.currency ?? "EUR"
+                              : "symbol"
+                              : "1.2-2"
+                        }}
+                      </strong>
+                    </span>
+                    @if (alert.product?.current_price) {
+                      <span>
+                        Falta:
+                        <strong class="text-brand-600">
+                          {{
+                            alert.product!.current_price! -
+                              alert.threshold_price | number: "1.2-2"
+                          }}
+                          €
+                        </strong>
+                      </span>
+                    }
+                  </div>
+                </div>
+                <button
+                  (click)="onDelete(alert.id)"
+                  class="btn-ghost btn-sm text-danger-600 hover:bg-danger-50 flex-shrink-0"
+                  title="Eliminar"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

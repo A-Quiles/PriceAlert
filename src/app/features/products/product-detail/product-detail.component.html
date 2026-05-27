@@ -1,0 +1,326 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <a
+    routerLink="/products"
+    class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+  >
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M15 19l-7-7 7-7"
+      />
+    </svg>
+    Volver a productos
+  </a>
+
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="skeleton h-8 w-64 rounded"></div>
+      <div class="card p-6">
+        <div class="flex gap-4">
+          <div class="skeleton w-32 h-32 rounded-xl flex-shrink-0"></div>
+          <div class="flex-1 space-y-3">
+            <div class="skeleton h-6 w-3/4 rounded"></div>
+            <div class="skeleton h-4 w-1/2 rounded"></div>
+            <div class="skeleton h-10 w-28 rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else if (product()) {
+    <!-- Product header card -->
+    <div class="card p-6 mb-6 animate-fade-in">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <!-- Image -->
+        <div
+          class="flex-shrink-0 w-32 h-32 rounded-xl overflow-hidden bg-gray-100 self-start"
+        >
+          @if (product()?.image_url) {
+            <img
+              [src]="product()!.image_url"
+              [alt]="product()!.title"
+              class="w-full h-full object-contain p-2"
+            />
+          } @else {
+            <div
+              class="w-full h-full flex items-center justify-center text-gray-300"
+            >
+              <svg
+                class="w-12 h-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+          }
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <h1 class="text-xl font-bold text-gray-900 leading-tight mb-2">
+            {{ product()?.title }}
+          </h1>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="badge-blue">ASIN: {{ product()?.asin }}</span>
+            <span
+              [class]="
+                product()?.availability === 'in_stock'
+                  ? 'badge-success'
+                  : 'badge-gray'
+              "
+            >
+              {{
+                product()?.availability === "in_stock"
+                  ? "✓ Disponible"
+                  : "Agotado"
+              }}
+            </span>
+          </div>
+
+          <!-- Price -->
+          <div class="flex items-baseline gap-3 mb-4">
+            @if (product()?.current_price !== null) {
+              <span class="text-3xl font-bold text-gray-900">
+                {{
+                  product()!.current_price
+                    | currency: product()!.currency : "symbol" : "1.2-2"
+                }}
+              </span>
+              @if (
+                product()?.original_price &&
+                product()!.original_price !== product()!.current_price
+              ) {
+                <span class="text-lg text-gray-400 line-through">
+                  {{
+                    product()!.original_price
+                      | currency: product()!.currency : "symbol" : "1.2-2"
+                  }}
+                </span>
+                <span class="badge-success">
+                  -{{
+                    ((product()!.original_price! - product()!.current_price!) /
+                      product()!.original_price!) *
+                      100 | number: "1.0-0"
+                  }}%
+                </span>
+              }
+            } @else {
+              <span class="text-gray-400">Precio no disponible</span>
+            }
+          </div>
+
+          <!-- Price stats -->
+          <div class="grid grid-cols-3 gap-3 text-center mb-4">
+            <div class="bg-gray-50 rounded-lg p-2">
+              <p class="text-xs text-gray-500">Mínimo histórico</p>
+              <p class="text-sm font-semibold text-success-600">
+                {{
+                  priceMin | currency: product()!.currency : "symbol" : "1.2-2"
+                }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-2">
+              <p class="text-xs text-gray-500">Precio actual</p>
+              <p class="text-sm font-semibold text-gray-900">
+                {{
+                  product()?.current_price ?? 0
+                    | currency: product()!.currency : "symbol" : "1.2-2"
+                }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-2">
+              <p class="text-xs text-gray-500">Máximo histórico</p>
+              <p class="text-sm font-semibold text-danger-600">
+                {{
+                  priceMax | currency: product()!.currency : "symbol" : "1.2-2"
+                }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-wrap gap-2">
+            <button (click)="openAmazon()" class="btn-primary btn-sm">
+              <svg
+                class="w-4 h-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+              Ver en Amazon
+            </button>
+            <button
+              (click)="onRefresh()"
+              [disabled]="refreshing()"
+              class="btn-secondary btn-sm"
+            >
+              <svg
+                class="w-4 h-4 mr-1"
+                [class.animate-spin]="refreshing()"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Actualizar
+            </button>
+            <button
+              (click)="onDelete()"
+              class="btn-ghost btn-sm text-danger-600 hover:bg-danger-50"
+            >
+              <svg
+                class="w-4 h-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price chart -->
+    <div class="card p-6 mb-6 animate-fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">
+          Historial de precios
+        </h2>
+        <div class="flex gap-1">
+          @for (days of [7, 30, 90]; track days) {
+            <button
+              (click)="changeHistoryDays(days)"
+              class="px-2.5 py-1 text-xs rounded-lg transition-colors"
+              [class.bg-brand-600]="historyDays() === days"
+              [class.text-white]="historyDays() === days"
+              [class.text-gray-500]="historyDays() !== days"
+              [class.hover:bg-gray-100]="historyDays() !== days"
+            >
+              {{ days }}d
+            </button>
+          }
+        </div>
+      </div>
+      <app-price-chart [history]="history()" [currency]="product()!.currency" />
+    </div>
+
+    <!-- Alert configuration -->
+    <div class="card p-6 animate-fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">
+            Configurar alerta de precio
+          </h2>
+          <p class="text-sm text-gray-500">
+            Recibe un email cuando el precio baje de tu objetivo
+          </p>
+        </div>
+        <button
+          (click)="showAlertForm.set(!showAlertForm())"
+          class="btn-secondary btn-sm"
+        >
+          {{ showAlertForm() ? "Cancelar" : "Editar" }}
+        </button>
+      </div>
+
+      @if (product()?.alert_threshold) {
+        <div class="flex items-center gap-3 p-3 bg-brand-50 rounded-lg mb-4">
+          <svg
+            class="w-5 h-5 text-brand-600 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+            />
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-brand-900">
+              Alerta configurada:
+              <strong>{{
+                product()!.alert_threshold
+                  | currency: product()!.currency : "symbol" : "1.2-2"
+              }}</strong>
+            </p>
+            <p class="text-xs text-brand-700">
+              {{
+                product()!.alert_enabled
+                  ? "Notificaciones activadas"
+                  : "Notificaciones desactivadas"
+              }}
+            </p>
+          </div>
+        </div>
+      }
+
+      @if (showAlertForm()) {
+        <form
+          [formGroup]="alertForm"
+          (ngSubmit)="saveAlertThreshold()"
+          class="space-y-3 animate-fade-in"
+        >
+          <div>
+            <label class="form-label" for="threshold">Precio objetivo</label>
+            <div class="relative max-w-xs">
+              <span
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"
+                >{{ product()?.currency }}</span
+              >
+              <input
+                id="threshold"
+                type="number"
+                formControlName="threshold"
+                class="form-input pl-10"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="submit"
+              class="btn-primary btn-sm"
+              [disabled]="alertForm.invalid"
+            >
+              Guardar alerta
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+</div>

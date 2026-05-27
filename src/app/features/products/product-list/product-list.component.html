@@ -1,0 +1,144 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div
+    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
+  >
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Mis productos</h1>
+      <p class="text-gray-500 text-sm mt-0.5">
+        {{ allProducts().length }} producto{{
+          allProducts().length !== 1 ? "s" : ""
+        }}
+        rastreado{{ allProducts().length !== 1 ? "s" : "" }}
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button
+        (click)="refreshAll()"
+        [disabled]="refreshingAll() || loading()"
+        class="btn-secondary btn-sm"
+      >
+        <svg
+          class="w-4 h-4 mr-1"
+          [class.animate-spin]="refreshingAll()"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
+        </svg>
+        Actualizar todos
+      </button>
+      <a routerLink="/products/add" class="btn-primary btn-sm">
+        <svg
+          class="w-4 h-4 mr-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        Añadir
+      </a>
+    </div>
+  </div>
+
+  <!-- Search -->
+  @if (!loading() && allProducts().length > 0) {
+    <div class="mb-5">
+      <div class="relative max-w-md">
+        <svg
+          class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          placeholder="Buscar por nombre o ASIN..."
+          class="form-input pl-9"
+        />
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="card p-4">
+          <div class="flex gap-3">
+            <div class="skeleton w-16 h-16 rounded-lg flex-shrink-0"></div>
+            <div class="flex-1 space-y-2">
+              <div class="skeleton h-4 w-full rounded"></div>
+              <div class="skeleton h-3 w-3/4 rounded"></div>
+            </div>
+          </div>
+          <div class="skeleton h-8 w-24 mt-3 rounded"></div>
+        </div>
+      }
+    </div>
+  } @else if (filteredProducts.length === 0 && searchQuery) {
+    <div class="card p-10 text-center">
+      <p class="text-gray-500">
+        No se encontraron productos con "<strong>{{ searchQuery }}</strong
+        >"
+      </p>
+    </div>
+  } @else if (allProducts().length === 0) {
+    <div class="card p-12 text-center animate-fade-in">
+      <div
+        class="w-20 h-20 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-4"
+      >
+        <svg
+          class="w-10 h-10 text-brand-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+          />
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Sin productos</h3>
+      <p class="text-gray-500 text-sm mb-6">
+        Añade productos de Amazon para empezar a monitorear sus precios.
+      </p>
+      <a routerLink="/products/add" class="btn-primary"
+        >Añadir primer producto</a
+      >
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (product of filteredProducts; track product.id) {
+        <app-product-card
+          [product]="product"
+          (refreshProduct)="onRefreshProduct($event)"
+          (deleteProduct)="onDeleteProduct($event)"
+          (toggleAlert)="onToggleAlert($event)"
+        />
+      }
+    </div>
+  }
+</div>

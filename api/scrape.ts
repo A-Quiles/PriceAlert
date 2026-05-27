@@ -236,6 +236,14 @@ export default async function handler(
         ? parsedOriginal
         : null;
 
+    if (parsedPrice === null) {
+      res.status(500).json({
+        message:
+          'No se pudo extraer el precio del producto. Verifica la URL y vuelve a intentarlo.',
+      });
+      return;
+    }
+
     const result: ScrapeResult = {
       title: title.substring(0, 500), // Limit title length
       price: parsedPrice,

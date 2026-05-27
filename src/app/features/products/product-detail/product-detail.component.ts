@@ -154,6 +154,11 @@ export class ProductDetailComponent implements OnInit {
   }
 
   openAmazon(): void {
-    window.open(this.product()?.url, '_blank', 'noopener,noreferrer');
+    const url = this.product()?.url;
+    if (!url || !/^https?:\/\/(www\.)?amazon\./i.test(url)) {
+      this.toast.error('URL de Amazon inválida o no disponible.');
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 }

@@ -282,6 +282,12 @@ export class ProductsService {
       price: scrapeData.price,
     });
 
+    if (scrapeData.price === null) {
+      throw new Error(
+        'No se pudo extraer el precio del producto. Verifica la URL y vuelve a intentarlo.',
+      );
+    }
+
     const shouldSaveHistory =
       scrapeData.price !== null &&
       (product.current_price === null ||

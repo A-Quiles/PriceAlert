@@ -87,6 +87,11 @@ export class DashboardComponent implements OnInit {
           p.id === event.id ? { ...p, alert_enabled: event.enabled } : p,
         ),
       );
+      const delta = event.enabled ? 1 : -1;
+      this.stats.update((s) => ({
+        ...s,
+        activeAlerts: Math.max(0, s.activeAlerts + delta),
+      }));
     } catch {
       this.toast.error('Error al actualizar la alerta');
     }

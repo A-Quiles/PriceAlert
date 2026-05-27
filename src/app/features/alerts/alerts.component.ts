@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AlertsService } from '../../core/services/alerts.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Alert } from '../../core/models';
+import { Product } from '../../core/models';
 
 @Component({
   selector: 'app-alerts',
@@ -16,14 +16,14 @@ export class AlertsComponent implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly loading = signal(true);
-  readonly alerts = signal<Alert[]>([]);
+  readonly alerts = signal<Product[]>([]);
 
-  get triggeredAlerts(): Alert[] {
-    return this.alerts().filter((a) => a.triggered);
+  get triggeredAlerts(): Product[] {
+    return this.alerts().filter((a) => a.alert_triggered);
   }
 
-  get pendingAlerts(): Alert[] {
-    return this.alerts().filter((a) => !a.triggered);
+  get pendingAlerts(): Product[] {
+    return this.alerts().filter((a) => !a.alert_triggered);
   }
 
   async ngOnInit(): Promise<void> {
@@ -43,13 +43,13 @@ export class AlertsComponent implements OnInit {
   }
 
   async onDelete(id: string): Promise<void> {
-    if (!confirm('¿Eliminar esta alerta?')) return;
+    if (!confirm('¿Desactivar esta alerta?')) return;
     try {
       await this.alertsService.deleteAlert(id);
       this.alerts.update((list) => list.filter((a) => a.id !== id));
-      this.toast.success('Alerta eliminada');
+      this.toast.success('Alerta desactivada');
     } catch {
-      this.toast.error('Error al eliminar la alerta');
+      this.toast.error('Error al desactivar la alerta');
     }
   }
 
@@ -61,9 +61,9 @@ export class AlertsComponent implements OnInit {
           a.id === id
             ? {
                 ...a,
-                triggered: false,
-                triggered_at: null,
-                trigger_price: null,
+                alert_triggered: false,
+                alert_triggered_at: null,
+                alert_trigger_price: null,
               }
             : a,
         ),

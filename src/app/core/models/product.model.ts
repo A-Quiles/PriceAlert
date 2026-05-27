@@ -11,6 +11,10 @@ export interface Product {
   availability: 'in_stock' | 'out_of_stock' | 'unknown';
   alert_threshold: number | null;
   alert_enabled: boolean;
+  alert_triggered: boolean;
+  alert_triggered_at: string | null;
+  alert_trigger_price: number | null;
+  alert_email_sent: boolean;
   last_checked: string | null;
   created_at: string;
   updated_at: string;

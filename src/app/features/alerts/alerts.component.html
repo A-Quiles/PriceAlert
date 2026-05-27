@@ -91,10 +91,10 @@
                 <div
                   class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100"
                 >
-                  @if (alert.product?.image_url) {
+                  @if (alert.image_url) {
                     <img
-                      [src]="alert.product!.image_url"
-                      [alt]="alert.product?.title"
+                      [src]="alert.image_url"
+                      [alt]="alert.title"
                       class="w-full h-full object-contain p-1"
                     />
                   } @else {
@@ -119,44 +119,38 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-medium text-gray-900 line-clamp-1">
-                    {{ alert.product?.title }}
+                    {{ alert.title }}
                   </p>
                   <div class="flex items-center gap-2 mt-1 flex-wrap">
                     <span class="badge-success"> ✓ Objetivo alcanzado </span>
-                    @if (alert.trigger_price) {
+                    @if (alert.alert_trigger_price) {
                       <span class="text-xs text-gray-500">
                         Disparado a
                         <strong>{{
-                          alert.trigger_price
-                            | currency
-                              : alert.product?.currency ?? "EUR"
-                              : "symbol"
-                              : "1.2-2"
+                          alert.alert_trigger_price
+                            | currency: alert.currency : "symbol" : "1.2-2"
                         }}</strong>
                       </span>
                     }
-                    @if (alert.triggered_at) {
+                    @if (alert.alert_triggered_at) {
                       <span class="text-xs text-gray-400">
-                        · {{ alert.triggered_at | date: "d MMM yyyy, HH:mm" }}
+                        ·
+                        {{
+                          alert.alert_triggered_at | date: "d MMM yyyy, HH:mm"
+                        }}
                       </span>
                     }
                   </div>
                   <p class="text-xs text-gray-500 mt-1">
                     Precio objetivo:
                     <strong>{{
-                      alert.threshold_price
-                        | currency
-                          : alert.product?.currency ?? "EUR"
-                          : "symbol"
-                          : "1.2-2"
+                      alert.alert_threshold
+                        | currency: alert.currency : "symbol" : "1.2-2"
                     }}</strong>
                     · Precio actual:
                     <strong>{{
-                      alert.product?.current_price
-                        | currency
-                          : alert.product?.currency ?? "EUR"
-                          : "symbol"
-                          : "1.2-2"
+                      alert.current_price
+                        | currency: alert.currency : "symbol" : "1.2-2"
                     }}</strong>
                   </p>
                 </div>
@@ -210,10 +204,10 @@
                 <div
                   class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100"
                 >
-                  @if (alert.product?.image_url) {
+                  @if (alert.image_url) {
                     <img
-                      [src]="alert.product!.image_url"
-                      [alt]="alert.product?.title"
+                      [src]="alert.image_url"
+                      [alt]="alert.title"
                       class="w-full h-full object-contain p-1"
                     />
                   } @else {
@@ -237,49 +231,40 @@
                   }
                 </div>
                 <div class="flex-1 min-w-0">
-                  <a
-                    [routerLink]="['/products', alert.product_id]"
-                    class="text-sm font-medium text-gray-900 hover:text-brand-600 line-clamp-1 transition-colors"
-                  >
-                    {{ alert.product?.title }}
-                  </a>
+                  <p class="text-sm font-medium text-gray-900 line-clamp-1">
+                    {{ alert.title }}
+                  </p>
                   <div
                     class="flex items-center gap-3 mt-1 flex-wrap text-xs text-gray-500"
                   >
                     <span>
                       Objetivo:
                       <strong class="text-gray-900">{{
-                        alert.threshold_price
-                          | currency
-                            : alert.product?.currency ?? "EUR"
-                            : "symbol"
-                            : "1.2-2"
+                        alert.alert_threshold
+                          | currency: alert.currency : "symbol" : "1.2-2"
                       }}</strong>
                     </span>
                     <span>
                       Actual:
                       <strong
                         [class.text-danger-600]="
-                          (alert.product?.current_price ?? 999999) >
-                          alert.threshold_price
+                          (alert.current_price ?? 999999) >
+                          (alert.alert_threshold ?? 999999)
                         "
                       >
                         {{
-                          alert.product?.current_price
-                            | currency
-                              : alert.product?.currency ?? "EUR"
-                              : "symbol"
-                              : "1.2-2"
+                          alert.current_price
+                            | currency: alert.currency : "symbol" : "1.2-2"
                         }}
                       </strong>
                     </span>
-                    @if (alert.product?.current_price) {
+                    @if (alert.current_price && alert.alert_threshold) {
                       <span>
                         Falta:
                         <strong class="text-brand-600">
                           {{
-                            alert.product!.current_price! -
-                              alert.threshold_price | number: "1.2-2"
+                            alert.current_price - alert.alert_threshold
+                              | number: "1.2-2"
                           }}
                           €
                         </strong>

@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
+import { LoggerService } from './logger.service';
 import { Product, CreateProductDto, UpdateProductDto } from '../models';
 import { environment } from '../../../environments/environment';
+
+const CTX = 'ProductsService';
 
 @Injectable({
   providedIn: 'root',
@@ -10,10 +13,15 @@ import { environment } from '../../../environments/environment';
 export class ProductsService {
   private readonly supabase = inject(SupabaseService);
   private readonly auth = inject(AuthService);
+  private readonly logger = inject(LoggerService);
 
   async getProducts(): Promise<Product[]> {
     const userId = this.auth.user()?.id;
-    if (!userId) return [];
+    if (!userId) {
+      this.logger.warn(CTX, 'getProducts: usuario no autenticado');
+      return [];
+    }
+    this.logger.debug(CTX, 'getProducts: cargando productos', { userId });
 
     const { data, error } = await this.supabase.client
       .from('tracked_products')
@@ -21,7 +29,14 @@ export class ProductsService {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      this.logger.supabaseError(CTX, 'getProducts', error);
+      throw error;
+    }
+    this.logger.info(
+      CTX,
+      `getProducts: ${data?.length ?? 0} productos cargados`,
+    );
     return data ?? [];
   }
 
@@ -42,21 +57,64 @@ export class ProductsService {
 
   async addProduct(dto: CreateProductDto): Promise<Product> {
     const userId = this.auth.user()?.id;
-    if (!userId) throw new Error('Not authenticated');
+    if (!userId) {
+      this.logger.error(CTX, 'addProduct: usuario no autenticado');
+      throw new Error('Not authenticated');
+    }
 
-    // Call the serverless scraper function
-    const scrapeResponse = await fetch(`${environment.apiUrl}/api/scrape`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: dto.url }),
+    const scrapeUrl = `${environment.apiUrl}/api/scrape`;
+    this.logger.info(CTX, `addProduct: llamando scraper → ${scrapeUrl}`, {
+      url: dto.url,
     });
 
+    let scrapeResponse: Response;
+    try {
+      scrapeResponse = await fetch(scrapeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: dto.url }),
+      });
+    } catch (netError) {
+      this.logger.fetchError(CTX, scrapeUrl, netError);
+      throw new Error(
+        'No se pudo conectar con el servidor de scraping. ' +
+          "¿Está corriendo 'vercel dev' en otro terminal?",
+      );
+    }
+
+    this.logger.debug(
+      CTX,
+      `addProduct: respuesta scraper HTTP ${scrapeResponse.status}`,
+    );
+
     if (!scrapeResponse.ok) {
-      const err = await scrapeResponse.json();
-      throw new Error(err.message ?? 'Error al obtener datos del producto');
+      let errBody: { message?: string } = {};
+      try {
+        errBody = await scrapeResponse.json();
+      } catch {
+        /* ignore */
+      }
+      const cause =
+        scrapeResponse.status === 404
+          ? 'Endpoint no encontrado (HTTP 404). Comprueba que "vercel dev" está corriendo ' +
+            'en el puerto 3000 y que has reiniciado "ng serve" después de añadir proxy.conf.json.'
+          : (errBody.message ??
+            `Error del scraper (HTTP ${scrapeResponse.status})`);
+      this.logger.error(
+        CTX,
+        `addProduct: scraper error HTTP ${scrapeResponse.status} → ${cause}`,
+        errBody,
+      );
+      throw new Error(cause);
     }
 
     const scrapeData = await scrapeResponse.json();
+    this.logger.info(CTX, 'addProduct: datos scrapeados', {
+      asin: scrapeData.asin,
+      title: scrapeData.title?.substring(0, 50),
+      price: scrapeData.price,
+      currency: scrapeData.currency,
+    });
 
     const { data, error } = await this.supabase.client
       .from('tracked_products')
@@ -77,16 +135,31 @@ export class ProductsService {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      this.logger.supabaseError(CTX, 'insert tracked_products', error);
+      throw error;
+    }
+    this.logger.info(CTX, `addProduct: producto insertado en BD`, {
+      id: data.id,
+    });
 
     // Save initial price history record
     if (scrapeData.price !== null) {
-      await this.supabase.client.from('price_history').insert({
-        product_id: data.id,
-        price: scrapeData.price,
-        currency: scrapeData.currency ?? 'EUR',
-        availability: scrapeData.availability,
-      });
+      const { error: histError } = await this.supabase.client
+        .from('price_history')
+        .insert({
+          product_id: data.id,
+          price: scrapeData.price,
+          currency: scrapeData.currency ?? 'EUR',
+          availability: scrapeData.availability,
+        });
+      if (histError) {
+        this.logger.warn(
+          CTX,
+          'addProduct: no se pudo guardar historial inicial',
+          histError,
+        );
+      }
     }
 
     return data;
@@ -105,6 +178,7 @@ export class ProductsService {
       .single();
 
     if (error) throw error;
+
     return data;
   }
 
@@ -125,15 +199,35 @@ export class ProductsService {
     const product = await this.getProductById(id);
     if (!product) throw new Error('Producto no encontrado');
 
-    const scrapeResponse = await fetch(`${environment.apiUrl}/api/scrape`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: product.url }),
+    const scrapeUrl = `${environment.apiUrl}/api/scrape`;
+    this.logger.info(CTX, `refreshProduct: actualizando precio`, {
+      id,
+      url: product.url,
     });
 
-    if (!scrapeResponse.ok) throw new Error('Error al actualizar el precio');
+    let scrapeResponse: Response;
+    try {
+      scrapeResponse = await fetch(scrapeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: product.url }),
+      });
+    } catch (netError) {
+      this.logger.fetchError(CTX, scrapeUrl, netError);
+      throw new Error('No se pudo conectar con el servidor de scraping.');
+    }
+
+    if (!scrapeResponse.ok) {
+      this.logger.error(CTX, `refreshProduct: HTTP ${scrapeResponse.status}`);
+      throw new Error(
+        `Error al actualizar el precio (HTTP ${scrapeResponse.status})`,
+      );
+    }
 
     const scrapeData = await scrapeResponse.json();
+    this.logger.debug(CTX, 'refreshProduct: datos recibidos', {
+      price: scrapeData.price,
+    });
 
     const { data, error } = await this.supabase.client
       .from('tracked_products')

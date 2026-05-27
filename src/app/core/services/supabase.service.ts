@@ -17,6 +17,19 @@ export class SupabaseService {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
+          // Evita NavigatorLockAcquireTimeoutError: reemplaza la implementación
+          // del Web Lock por una que espera en vez de fallar inmediatamente.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          lock: async <R>(
+            name: string,
+            _acquireTimeout: number,
+            fn: () => Promise<R>,
+          ): Promise<R> => {
+            if (typeof navigator !== 'undefined' && navigator.locks) {
+              return navigator.locks.request(name, fn);
+            }
+            return fn();
+          },
         },
       },
     );

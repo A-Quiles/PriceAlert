@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { apiConfig } from './config';
 
 interface ScrapeResult {
   title: string;
@@ -105,7 +106,7 @@ export default async function handler(
   const currency = detectCurrency(url);
 
   // Build the target URL — use ScraperAPI if key is provided
-  const scraperApiKey = process.env['SCRAPER_API_KEY'];
+  const scraperApiKey = apiConfig.scraper.apiKey || null;
   const targetUrl = scraperApiKey
     ? `https://api.scraperapi.com/?api_key=${scraperApiKey}&url=${encodeURIComponent(url)}&render=false&country_code=es`
     : url;
@@ -172,9 +173,24 @@ export default async function handler(
       }
     }
 
-    // Original / list price
+    // Original / list price — restringido al bloque de precio principal
+    // para evitar capturar precios de productos relacionados en la misma página.
     const rawOriginal =
-      $('.a-price.a-text-price .a-offscreen').first().text().trim() ||
+      // Precio base explícito (el más fiable)
+      $('#corePriceDisplay_desktop_feature_div .basisPrice .a-offscreen')
+        .first()
+        .text()
+        .trim() ||
+      // Precio tachado dentro del bloque de precio principal
+      $('#corePriceDisplay_desktop_feature_div .a-text-price .a-offscreen')
+        .first()
+        .text()
+        .trim() ||
+      // Alternativa mobile / layout antiguo
+      $('#corePrice_feature_div .a-text-price .a-offscreen')
+        .first()
+        .text()
+        .trim() ||
       $('#listPrice').text().trim() ||
       undefined;
 
@@ -208,10 +224,22 @@ export default async function handler(
       availability = 'in_stock';
     }
 
+    const parsedPrice = parsePrice(rawPrice);
+    const parsedOriginal = parsePrice(rawOriginal);
+
+    // Sanity check: el precio original solo es válido si es mayor que el actual.
+    // Si no, probablemente lo capturamos de otro producto en la misma página.
+    const validatedOriginal =
+      parsedOriginal !== null &&
+      parsedPrice !== null &&
+      parsedOriginal > parsedPrice
+        ? parsedOriginal
+        : null;
+
     const result: ScrapeResult = {
       title: title.substring(0, 500), // Limit title length
-      price: parsePrice(rawPrice),
-      original_price: parsePrice(rawOriginal),
+      price: parsedPrice,
+      original_price: validatedOriginal,
       currency,
       image_url: imageUrl ? imageUrl.split('._')[0] + '._AC_SL500_.jpg' : null,
       asin,

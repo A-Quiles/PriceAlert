@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import nodemailer from 'nodemailer';
+import { apiConfig } from './config';
 
 /**
  * GET /api/check-prices
@@ -34,7 +35,7 @@ function parsePrice(raw: string | undefined): number | null {
 async function scrapePrice(
   url: string,
 ): Promise<{ price: number | null; availability: string }> {
-  const scraperApiKey = process.env['SCRAPER_API_KEY'];
+  const scraperApiKey = apiConfig.scraper.apiKey || null;
   const targetUrl = scraperApiKey
     ? `https://api.scraperapi.com/?api_key=${scraperApiKey}&url=${encodeURIComponent(url)}`
     : url;
@@ -183,7 +184,7 @@ export default async function handler(
 ): Promise<void> {
   // Authenticate cron request
   const authHeader = req.headers['authorization'];
-  const cronSecret = process.env['CRON_SECRET'];
+  const cronSecret = apiConfig.cron.secret;
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     res.status(401).json({ message: 'Unauthorized' });
@@ -191,17 +192,17 @@ export default async function handler(
   }
 
   const supabase = createClient(
-    process.env['SUPABASE_URL']!,
-    process.env['SUPABASE_SERVICE_ROLE_KEY']!,
+    apiConfig.supabase.url,
+    apiConfig.supabase.serviceRoleKey,
   );
 
   const mailer = nodemailer.createTransport({
-    host: process.env['SMTP_HOST'],
-    port: Number(process.env['SMTP_PORT'] ?? 587),
-    secure: process.env['SMTP_PORT'] === '465',
+    host: apiConfig.smtp.host,
+    port: apiConfig.smtp.port,
+    secure: apiConfig.smtp.secure,
     auth: {
-      user: process.env['SMTP_USER'],
-      pass: process.env['SMTP_PASS'],
+      user: apiConfig.smtp.user,
+      pass: apiConfig.smtp.pass,
     },
   });
 
@@ -252,29 +253,27 @@ export default async function handler(
         if (
           price !== null &&
           product.alert_threshold &&
-          price <= product.alert_threshold
+          price <= product.alert_threshold &&
+          !product.alert_email_sent
         ) {
-          // Find unsent alerts for this product
-          const { data: alerts } = await supabase
-            .from('alerts')
-            .select('*, profiles!inner(email, full_name, email_notifications)')
-            .eq('product_id', product.id)
-            .eq('triggered', false);
+          // Obtener perfil del usuario para el email
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name, email_notifications')
+            .eq('id', product.user_id)
+            .single();
 
-          for (const alert of alerts ?? []) {
-            const profile = (alert as any).profiles;
-            if (!profile?.email_notifications || !profile?.email) continue;
-
-            // Mark alert as triggered
+          if (profile?.email_notifications && profile?.email) {
+            // Marcar como disparada antes de enviar (evita reenvíos si el email falla)
             await supabase
-              .from('alerts')
+              .from('tracked_products')
               .update({
-                triggered: true,
-                triggered_at: new Date().toISOString(),
-                trigger_price: price,
-                sent_email: true,
+                alert_triggered: true,
+                alert_triggered_at: new Date().toISOString(),
+                alert_trigger_price: price,
+                alert_email_sent: true,
               })
-              .eq('id', alert.id);
+              .eq('id', product.id);
 
             // Send email
             const html = buildAlertEmailHtml({
@@ -282,7 +281,7 @@ export default async function handler(
               productUrl: product.url,
               productImage: product.image_url,
               currentPrice: price,
-              thresholdPrice: alert.threshold_price,
+              thresholdPrice: product.alert_threshold,
               originalPrice: product.original_price,
               currency: product.currency,
               userName: profile.full_name ?? profile.email.split('@')[0],
@@ -290,8 +289,7 @@ export default async function handler(
 
             await mailer.sendMail({
               from:
-                process.env['EMAIL_FROM'] ??
-                'PriceAlert <noreply@pricealert.app>',
+                apiConfig.smtp.from ?? 'PriceAlert <noreply@pricealert.app>',
               to: profile.email,
               subject: `🔔 ¡Precio bajado! ${product.title.substring(0, 50)} — ${price.toFixed(2)} ${product.currency}`,
               html,

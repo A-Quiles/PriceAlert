@@ -76,7 +76,7 @@ export class ProductDetailComponent implements OnInit {
   private async loadAlerts(id: string): Promise<void> {
     try {
       const all = await this.alertsService.getAlerts();
-      this.alerts.set(all.filter((a) => a.product_id === this.product()?.id));
+      this.alerts.set(all.filter((a) => a.id === id));
     } catch {}
   }
 
@@ -124,20 +124,6 @@ export class ProductDetailComponent implements OnInit {
       this.toast.success('Alerta configurada correctamente');
     } catch {
       this.toast.error('Error al guardar la alerta');
-    }
-  }
-
-  async createManualAlert(): Promise<void> {
-    const product = this.product();
-    const threshold = this.alertForm.value.threshold;
-    if (!product || !threshold) return;
-
-    try {
-      const alert = await this.alertsService.createAlert(product.id, threshold);
-      this.alerts.update((list) => [alert, ...list]);
-      this.toast.success('Alerta creada');
-    } catch {
-      this.toast.error('Error al crear la alerta');
     }
   }
 

@@ -207,17 +207,22 @@ export default async function handler(
   });
 
   try {
-    // Fetch all products with alert enabled
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    // Process only products with alert enabled that were not checked in the last 24 hours.
     const { data: products, error: prodErr } = await supabase
       .from('tracked_products')
       .select('*')
       .eq('alert_enabled', true)
+      .or(`last_checked.is.null,last_checked.lt.${cutoff}`)
       .order('last_checked', { ascending: true, nullsFirst: true })
       .limit(50); // Process up to 50 per run to stay within timeout
 
     if (prodErr) throw prodErr;
     if (!products || products.length === 0) {
-      res.status(200).json({ message: 'No products to check', checked: 0 });
+      res
+        .status(200)
+        .json({ message: 'No products need checking right now', checked: 0 });
       return;
     }
 
@@ -227,6 +232,15 @@ export default async function handler(
     for (const product of products) {
       try {
         const { price, availability } = await scrapePrice(product.url);
+
+        const shouldSaveHistory =
+          price !== null &&
+          (product.current_price === null ||
+            product.availability !== availability ||
+            Math.abs(
+              (price - (product.current_price ?? 0)) /
+                (product.current_price || price),
+            ) > 0.02);
 
         // Update product price
         await supabase
@@ -239,14 +253,32 @@ export default async function handler(
           })
           .eq('id', product.id);
 
-        // Save price history
-        if (price !== null) {
+        if (shouldSaveHistory && price !== null) {
           await supabase.from('price_history').insert({
             product_id: product.id,
             price,
             currency: product.currency,
             availability,
           });
+
+          const { data: latestRows, error: latestError } = await supabase
+            .from('price_history')
+            .select('id')
+            .eq('product_id', product.id)
+            .order('created_at', { ascending: false })
+            .limit(30);
+
+          if (!latestError) {
+            const keepIds = latestRows?.map((row) => row.id) ?? [];
+            if (keepIds.length >= 30) {
+              const ids = keepIds.map((id) => `'${id}'`).join(',');
+              await supabase
+                .from('price_history')
+                .delete()
+                .eq('product_id', product.id)
+                .not('id', 'in', `(${ids})`);
+            }
+          }
         }
 
         // Check alert threshold

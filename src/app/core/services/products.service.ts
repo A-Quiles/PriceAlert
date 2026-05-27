@@ -62,6 +62,23 @@ export class ProductsService {
       throw new Error('Not authenticated');
     }
 
+    const { count: existingCount, error: countError } =
+      await this.supabase.client
+        .from('tracked_products')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+    if (countError) {
+      this.logger.supabaseError(CTX, 'count tracked_products', countError);
+      throw countError;
+    }
+
+    if ((existingCount ?? 0) >= 10) {
+      throw new Error(
+        'Límite de 10 productos alcanzado. Elimina uno antes de añadir otro.',
+      );
+    }
+
     const scrapeUrl = `${environment.apiUrl}/api/scrape`;
     this.logger.info(CTX, `addProduct: llamando scraper → ${scrapeUrl}`, {
       url: dto.url,
@@ -182,6 +199,42 @@ export class ProductsService {
     return data;
   }
 
+  private async cleanupOldHistory(productId: string): Promise<void> {
+    const { data: historyRows, error } = await this.supabase.client
+      .from('price_history')
+      .select('id')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (error) {
+      this.logger.warn(
+        CTX,
+        'cleanupOldHistory: no se pudo leer historial',
+        error,
+      );
+      return;
+    }
+
+    const keepIds = historyRows?.map((row: any) => row.id) ?? [];
+    if (keepIds.length < 30) return;
+
+    const inList = keepIds.map((id) => `'${id}'`).join(',');
+    const { error: deleteError } = await this.supabase.client
+      .from('price_history')
+      .delete()
+      .eq('product_id', productId)
+      .not('id', 'in', `(${inList})`);
+
+    if (deleteError) {
+      this.logger.warn(
+        CTX,
+        'cleanupOldHistory: no se pudieron borrar registros antiguos',
+        deleteError,
+      );
+    }
+  }
+
   async deleteProduct(id: string): Promise<void> {
     const userId = this.auth.user()?.id;
     if (!userId) throw new Error('Not authenticated');
@@ -229,6 +282,15 @@ export class ProductsService {
       price: scrapeData.price,
     });
 
+    const shouldSaveHistory =
+      scrapeData.price !== null &&
+      (product.current_price === null ||
+        product.availability !== scrapeData.availability ||
+        Math.abs(
+          (scrapeData.price - (product.current_price ?? 0)) /
+            (product.current_price || scrapeData.price),
+        ) > 0.02);
+
     const { data, error } = await this.supabase.client
       .from('tracked_products')
       .update({
@@ -245,14 +307,25 @@ export class ProductsService {
 
     if (error) throw error;
 
-    // Save to price history
-    if (scrapeData.price !== null) {
-      await this.supabase.client.from('price_history').insert({
-        product_id: id,
-        price: scrapeData.price,
-        currency: product.currency,
-        availability: scrapeData.availability,
-      });
+    if (shouldSaveHistory && scrapeData.price !== null) {
+      const { error: histError } = await this.supabase.client
+        .from('price_history')
+        .insert({
+          product_id: id,
+          price: scrapeData.price,
+          currency: product.currency,
+          availability: scrapeData.availability,
+        });
+
+      if (histError) {
+        this.logger.warn(
+          CTX,
+          'refreshProduct: no se pudo guardar historial',
+          histError,
+        );
+      } else {
+        await this.cleanupOldHistory(id);
+      }
     }
 
     return data;
@@ -290,17 +363,13 @@ export class ProductsService {
 
     const { data: products } = await this.supabase.client
       .from('tracked_products')
-      .select('current_price, original_price, alert_enabled')
-      .eq('user_id', userId);
-
-    const { data: alerts } = await this.supabase.client
-      .from('alerts')
-      .select('triggered')
+      .select('current_price, original_price, alert_enabled, alert_triggered')
       .eq('user_id', userId);
 
     const totalProducts = products?.length ?? 0;
     const activeAlerts = products?.filter((p) => p.alert_enabled).length ?? 0;
-    const triggeredAlerts = alerts?.filter((a) => a.triggered).length ?? 0;
+    const triggeredAlerts =
+      products?.filter((p) => p.alert_triggered).length ?? 0;
 
     const savings = products
       ?.filter((p) => p.original_price && p.current_price)

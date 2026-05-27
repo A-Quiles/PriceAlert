@@ -130,4 +130,72 @@ export class AuthService {
     }
     return { error };
   }
+
+  /** Cambia el correo del usuario autenticado previa verificación de contraseña. */
+  async changeEmail(
+    currentPassword: string,
+    newEmail: string,
+  ): Promise<{ error: AuthError | null }> {
+    const currentEmail = this.user()?.email ?? '';
+    this.logger.info(CTX, 'changeEmail: verificando credenciales');
+
+    // Verificar contraseña actual antes de modificar el correo
+    const { error: signInError } =
+      await this.supabase.client.auth.signInWithPassword({
+        email: currentEmail,
+        password: currentPassword,
+      });
+    if (signInError) {
+      this.logger.error(CTX, 'changeEmail: contraseña incorrecta', {
+        message: signInError.message,
+      });
+      return { error: signInError };
+    }
+
+    const { error } = await this.supabase.client.auth.updateUser({
+      email: newEmail,
+    });
+    if (error) {
+      this.logger.error(CTX, 'changeEmail: error al actualizar', {
+        message: error.message,
+      });
+    } else {
+      this.logger.info(CTX, 'changeEmail: confirmación enviada', { newEmail });
+    }
+    return { error };
+  }
+
+  /** Cambia la contraseña del usuario autenticado previa verificación de la contraseña actual. */
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ error: AuthError | null }> {
+    const currentEmail = this.user()?.email ?? '';
+    this.logger.info(CTX, 'changePassword: verificando credenciales');
+
+    // Verificar contraseña actual
+    const { error: signInError } =
+      await this.supabase.client.auth.signInWithPassword({
+        email: currentEmail,
+        password: currentPassword,
+      });
+    if (signInError) {
+      this.logger.error(CTX, 'changePassword: contraseña incorrecta', {
+        message: signInError.message,
+      });
+      return { error: signInError };
+    }
+
+    const { error } = await this.supabase.client.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) {
+      this.logger.error(CTX, 'changePassword: error al actualizar', {
+        message: error.message,
+      });
+    } else {
+      this.logger.info(CTX, 'changePassword: contraseña actualizada');
+    }
+    return { error };
+  }
 }

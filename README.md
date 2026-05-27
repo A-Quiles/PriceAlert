@@ -51,16 +51,18 @@ Todo ello con una interfaz limpia, responsive y en tiempo real, sin backend trad
 
 ## ✨ Funcionalidades
 
-| Función                       | Descripción                                                                      |
-| ----------------------------- | -------------------------------------------------------------------------------- |
-| 🔐 **Autenticación**          | Registro e inicio de sesión con email/contraseña (Supabase Auth)                 |
-| 🛒 **Rastreo de productos**   | Añade cualquier URL de Amazon (ES, COM, UK, DE, FR, IT, MX...)                   |
-| 📊 **Historial de precios**   | Gráficos de evolución de precio (7, 30, 90 días) con Chart.js                    |
-| 🔔 **Alertas personalizadas** | Define el precio objetivo y activa la notificación por email                     |
-| 📧 **Emails HTML**            | Emails automáticos con imagen del producto, precio, % descuento y enlace directo |
-| ♻️ **Actualización manual**   | Refresca el precio de cualquier producto a demanda                               |
-| 📱 **Diseño responsive**      | Funciona perfectamente en móvil, tablet y escritorio                             |
-| 🌙 **UI moderna**             | Interfaz construida con Tailwind CSS + animaciones fluidas                       |
+| Función                        | Descripción                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| 🔐 **Autenticación**           | Registro e inicio de sesión con email/contraseña (Supabase Auth)                   |
+| 🛒 **Rastreo de productos**    | Añade cualquier URL de Amazon (ES, COM, UK, DE, FR, IT, MX...)                     |
+| 📊 **Historial de precios**    | Gráficos de evolución de precio (7, 30, 90 días) con Chart.js                      |
+| 🔔 **Alertas personalizadas**  | Define el precio objetivo y activa la notificación por email                       |
+| 📧 **Emails HTML**             | Emails automáticos con imagen del producto, precio, % descuento y enlace directo   |
+| ♻️ **Actualización manual**    | Refresca el precio de cualquier producto a demanda                                 |
+| ⚙️ **Configuración de cuenta** | Cambio de email y contraseña con re-autenticación previa para mayor seguridad      |
+| 🌓 **Modo oscuro**             | Alternancia claro/oscuro persistida en localStorage; respeta la preferencia del SO |
+| 📱 **Diseño responsive**       | Funciona perfectamente en móvil, tablet y escritorio                               |
+| 🎨 **UI moderna**              | Interfaz con Tailwind CSS, transiciones suaves y animaciones fluidas               |
 
 ---
 
@@ -291,8 +293,11 @@ El script crea:
 ### Comandos disponibles
 
 ```bash
-# Servidor de desarrollo Angular
+# Servidor de desarrollo Angular (puerto 4200)
 npm start
+
+# Servidor de la API local con recarga automática (puerto 3000)
+npm run api
 
 # Build de producción
 npm run build
@@ -300,20 +305,31 @@ npm run build
 # Build de desarrollo
 npm run build:dev
 
-# Tests unitarios
+# Tests unitarios (una sola ejecución, sin modo watch)
+npm test -- --watch=false --browsers=ChromeHeadless --no-progress
+
+# Tests en modo watch
 npm test
 ```
 
+> 💡 Para desarrollo completo necesitas **dos terminales**: una con `npm start` y otra con `npm run api`.
+
 ### Probar las funciones serverless localmente
 
-Instala la [CLI de Vercel](https://vercel.com/docs/cli):
+Opción A — servidor local ligero (recomendado para desarrollo):
+
+```bash
+npm run api
+```
+
+Opción B — entorno Vercel completo (requiere [Vercel CLI](https://vercel.com/docs/cli)):
 
 ```bash
 npm install -g vercel
-vercel dev
+vercel dev --listen 3000
 ```
 
-Esto levanta las funciones serverless en `http://localhost:3000/api/`.
+Ambas opciones levantan las funciones en `http://localhost:3000/api/`.
 
 ### Probar el endpoint de scraping
 
@@ -414,7 +430,7 @@ Extrae los datos de un producto de Amazon.
 |---|---|---|
 | `400` | `URL de Amazon no válida` | URL no pertenece a Amazon |
 | `429` | `Amazon ha bloqueado la solicitud` | Rate limiting / CAPTCHA |
-| `500` | `No se pudo obtener el precio` | Producto sin precio visible |
+| `500` | `No se pudo extraer el precio del producto. Verifica la URL y vuelve a intentarlo.` | Producto sin precio visible o URL inválida |
 
 ---
 
@@ -470,18 +486,23 @@ price-alert/
 │   │   ├── core/
 │   │   │   ├── guards/auth.guard.ts
 │   │   │   ├── models/           # Interfaces TypeScript
-│   │   │   └── services/         # Servicios Angular (Auth, Products, Alerts...)
+│   │   │   └── services/
+│   │   │       ├── auth.service.ts       # Supabase Auth + cambio de email/contraseña
+│   │   │       ├── products.service.ts   # CRUD productos + scraping
+│   │   │       ├── alerts.service.ts     # Gestión de alertas
+│   │   │       └── theme.service.ts      # Modo claro/oscuro (señal + localStorage)
 │   │   ├── features/
 │   │   │   ├── auth/             # Login y Registro
 │   │   │   ├── alerts/           # Gestión de alertas
 │   │   │   ├── dashboard/        # Panel principal
-│   │   │   └── products/         # Lista, Detalle y Añadir producto
+│   │   │   ├── products/         # Lista, Detalle y Añadir producto
+│   │   │   └── settings/         # Perfil, cambio de email y contraseña
 │   │   └── shared/
-│   │       └── components/       # Navbar, PriceChart, ProductCard, Toast
+│   │       └── components/       # Navbar (con toggle de tema), PriceChart, ProductCard, Toast
 │   ├── environments/             # Configuración dev/prod
 │   ├── index.html
 │   ├── main.ts
-│   └── styles.scss               # Tailwind + clases globales
+│   └── styles.scss               # Tailwind + clases globales + overrides modo oscuro
 │
 ├── supabase/
 │   └── migrations/

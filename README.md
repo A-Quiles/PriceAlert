@@ -528,13 +528,13 @@ Esta rama añade toda la infraestructura legal y de pagos necesaria para operar 
 
 Se han creado cinco páginas accesibles públicamente bajo la ruta `/legal/`:
 
-| Ruta                       | Contenido                                                                                     |
-| -------------------------- | --------------------------------------------------------------------------------------------- |
-| `/legal/aviso-legal`       | Aviso Legal (LSSI-CE): identificación del titular, domicilio y datos de contacto              |
-| `/legal/privacidad`        | Política de Privacidad (RGPD): base jurídica, datos recogidos, encargados del tratamiento, derechos ARCO+ |
-| `/legal/terminos`          | Términos y Condiciones: descripción de planes, obligaciones, limitación de responsabilidad    |
-| `/legal/cookies`           | Política de Cookies: tabla de cookies esenciales usadas (sin cookies publicitarias)           |
-| `/legal/cancelacion`       | Política de Cancelación y Reembolsos: garantía de 14 días, cancelación en cualquier momento  |
+| Ruta                 | Contenido                                                                                                 |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `/legal/aviso-legal` | Aviso Legal (LSSI-CE): identificación del titular, domicilio y datos de contacto                          |
+| `/legal/privacidad`  | Política de Privacidad (RGPD): base jurídica, datos recogidos, encargados del tratamiento, derechos ARCO+ |
+| `/legal/terminos`    | Términos y Condiciones: descripción de planes, obligaciones, limitación de responsabilidad                |
+| `/legal/cookies`     | Política de Cookies: tabla de cookies esenciales usadas (sin cookies publicitarias)                       |
+| `/legal/cancelacion` | Política de Cancelación y Reembolsos: garantía de 14 días, cancelación en cualquier momento               |
 
 > ⚠️ Los campos `[NOMBRE_TITULAR]`, `[NIF_TITULAR]`, `[DIRECCIÓN_COMPLETA]` y `[EMAIL_CONTACTO]` son marcadores de posición que **debes rellenar** con los datos reales del titular antes de publicar.
 
@@ -560,10 +560,10 @@ El formulario de registro incorpora dos nuevas casillas antes del botón de env�
 
 ### Planes de suscripción
 
-| Plan          | Precio        | Productos máx. | Alertas   |
-| ------------- | ------------- | -------------- | --------- |
-| **Gratuito**  | 0 €/mes       | 5              | Ilimitadas|
-| **Premium**   | 4,99 €/mes    | 25             | Ilimitadas + soporte prioritario |
+| Plan         | Precio     | Productos máx. | Alertas                          |
+| ------------ | ---------- | -------------- | -------------------------------- |
+| **Gratuito** | 0 €/mes    | 5              | Ilimitadas                       |
+| **Premium**  | 4,99 €/mes | 25             | Ilimitadas + soporte prioritario |
 
 Los límites se aplican dinámicamente en `products.service.ts`: el plan se lee del perfil del usuario en cada intento de añadir un producto.
 
@@ -575,27 +575,27 @@ El flujo de pago usa **Stripe Checkout** (hosted), de forma que ningún dato de 
 
 **Nuevos endpoints serverless:**
 
-| Método | Ruta                            | Descripción                                                                  |
-| ------ | ------------------------------- | ---------------------------------------------------------------------------- |
-| `POST` | `/api/create-checkout-session`  | Busca o crea el cliente de Stripe, crea una sesión de pago y devuelve la URL |
-| `POST` | `/api/stripe-webhook`           | Recibe eventos de Stripe y actualiza el plan del usuario en Supabase         |
+| Método | Ruta                           | Descripción                                                                  |
+| ------ | ------------------------------ | ---------------------------------------------------------------------------- |
+| `POST` | `/api/create-checkout-session` | Busca o crea el cliente de Stripe, crea una sesión de pago y devuelve la URL |
+| `POST` | `/api/stripe-webhook`          | Recibe eventos de Stripe y actualiza el plan del usuario en Supabase         |
 
 **Eventos de Stripe manejados:**
 
-| Evento                             | Acción                                              |
-| ---------------------------------- | --------------------------------------------------- |
-| `checkout.session.completed`       | Activa el plan Premium y guarda IDs de Stripe       |
-| `customer.subscription.deleted`    | Degrada al plan Gratuito y limpia el ID             |
-| `customer.subscription.updated`    | Sincroniza el estado del plan (activo / cancelado)  |
+| Evento                          | Acción                                             |
+| ------------------------------- | -------------------------------------------------- |
+| `checkout.session.completed`    | Activa el plan Premium y guarda IDs de Stripe      |
+| `customer.subscription.deleted` | Degrada al plan Gratuito y limpia el ID            |
+| `customer.subscription.updated` | Sincroniza el estado del plan (activo / cancelado) |
 
 **Variables de entorno adicionales necesarias:**
 
-| Variable               | Descripción                                             |
-| ---------------------- | ------------------------------------------------------- |
-| `STRIPE_SECRET_KEY`    | Clave secreta de Stripe (`sk_live_...` o `sk_test_...`) |
-| `STRIPE_PRICE_ID`      | ID del precio recurrente creado en el dashboard Stripe  |
-| `STRIPE_WEBHOOK_SECRET`| Signing secret del webhook (`whsec_...`)                |
-| `APP_URL`              | URL base de la app (ej: `https://tudominio.com`)        |
+| Variable                | Descripción                                             |
+| ----------------------- | ------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`     | Clave secreta de Stripe (`sk_live_...` o `sk_test_...`) |
+| `STRIPE_PRICE_ID`       | ID del precio recurrente creado en el dashboard Stripe  |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret del webhook (`whsec_...`)                |
+| `APP_URL`               | URL base de la app (ej: `https://tudominio.com`)        |
 
 ---
 

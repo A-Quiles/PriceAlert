@@ -1,0 +1,367 @@
+<div
+  class="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-16 px-4"
+>
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        Planes simples y transparentes
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
+        Empieza gratis. Sube a Premium cuando necesites rastrear más productos y
+        recibir alertas más rápido.
+      </p>
+    </div>
+
+    <!-- Plans -->
+    <div class="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
+      <!-- Free -->
+      <div class="card p-8 flex flex-col">
+        <div class="mb-6">
+          <p
+            class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1"
+          >
+            Gratuito
+          </p>
+          <div class="flex items-end gap-1 mb-4">
+            <span class="text-4xl font-bold text-gray-900 dark:text-white"
+              >0 €</span
+            >
+            <span class="text-gray-500 dark:text-gray-400 mb-1">/mes</span>
+          </div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Sin tarjeta de crédito. Para siempre.
+          </p>
+        </div>
+
+        <ul class="space-y-3 flex-1 mb-8">
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-success-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Hasta <strong>5 productos</strong> rastreados
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-success-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Alertas por email
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-success-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Historial de precios (30 días)
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-400 dark:text-gray-600"
+          >
+            <svg
+              class="w-4 h-4 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+            Comprobación cada 24 h
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-400 dark:text-gray-600"
+          >
+            <svg
+              class="w-4 h-4 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+            Sin soporte prioritario
+          </li>
+        </ul>
+
+        @if (auth.isAuthenticated()) {
+          <button class="btn-secondary w-full" disabled>Plan actual</button>
+        } @else {
+          <a
+            routerLink="/auth/register"
+            class="btn-secondary w-full justify-center"
+          >
+            Empezar gratis
+          </a>
+        }
+      </div>
+
+      <!-- Premium -->
+      <div
+        class="card p-8 flex flex-col border-2 border-brand-500 relative overflow-hidden"
+      >
+        <div
+          class="absolute top-0 right-0 bg-brand-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl"
+        >
+          MÁS POPULAR
+        </div>
+
+        <div class="mb-6">
+          <p
+            class="text-sm font-semibold text-brand-600 uppercase tracking-wide mb-1"
+          >
+            Premium
+          </p>
+          <div class="flex items-end gap-1 mb-4">
+            <span class="text-4xl font-bold text-gray-900 dark:text-white"
+              >4,99 €</span
+            >
+            <span class="text-gray-500 dark:text-gray-400 mb-1">/mes</span>
+          </div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            IVA incluido. Cancela cuando quieras.
+          </p>
+        </div>
+
+        <ul class="space-y-3 flex-1 mb-8">
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-brand-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Hasta <strong>25 productos</strong> rastreados
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-brand-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Alertas en tiempo real
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-brand-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Historial de precios (90 días)
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-brand-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Comprobación cada 6 h
+          </li>
+          <li
+            class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4 text-brand-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Soporte prioritario por email
+          </li>
+        </ul>
+
+        @if (error()) {
+          <p class="text-sm text-danger-600 mb-3">{{ error() }}</p>
+        }
+
+        <button
+          type="button"
+          (click)="subscribePremium()"
+          [disabled]="loading()"
+          class="btn-primary w-full btn-lg"
+        >
+          @if (loading()) {
+            <svg
+              class="animate-spin w-5 h-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              ></path>
+            </svg>
+            Redirigiendo a pago seguro...
+          } @else {
+            Suscribirse a Premium
+          }
+        </button>
+        <p class="text-center text-xs text-gray-400 mt-3">
+          Pago seguro con
+          <span class="font-semibold">Stripe</span> · Sin permanencia · 14 días
+          de garantía
+        </p>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="mt-16 max-w-2xl mx-auto">
+      <h2
+        class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8"
+      >
+        Preguntas frecuentes
+      </h2>
+      <div class="space-y-4">
+        <div class="card p-5">
+          <p class="font-medium text-gray-900 dark:text-white mb-2">
+            ¿Puedo cancelar en cualquier momento?
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Sí. Sin permanencia ni penalización. Puedes cancelar desde Ajustes y
+            mantendrás el acceso Premium hasta el final del período pagado.
+          </p>
+        </div>
+        <div class="card p-5">
+          <p class="font-medium text-gray-900 dark:text-white mb-2">
+            ¿Mis datos de tarjeta están seguros?
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Todos los pagos se procesan a través de Stripe (certificado PCI-DSS
+            Nivel 1). PriceAlert nunca almacena datos de tarjeta.
+          </p>
+        </div>
+        <div class="card p-5">
+          <p class="font-medium text-gray-900 dark:text-white mb-2">
+            ¿Recibiré factura?
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Sí. Stripe emite automáticamente una factura electrónica a tu email
+            tras cada cobro exitoso.
+          </p>
+        </div>
+        <div class="card p-5">
+          <p class="font-medium text-gray-900 dark:text-white mb-2">
+            ¿Qué pasa con mis productos si vuelvo al plan gratuito?
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Conservas todos tus datos. Si tienes más de 5 productos, no podrás
+            añadir nuevos hasta eliminar los que superen el límite gratuito.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legal note -->
+    <p class="text-center text-xs text-gray-400 mt-10">
+      Al suscribirte aceptas nuestros
+      <a routerLink="/legal/terminos" class="hover:underline"
+        >Términos y Condiciones</a
+      >
+      y la
+      <a routerLink="/legal/privacidad" class="hover:underline"
+        >Política de Privacidad</a
+      >.
+      <a routerLink="/legal/cancelacion" class="hover:underline ml-1"
+        >Política de cancelación</a
+      >.
+    </p>
+  </div>
+</div>

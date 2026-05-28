@@ -2,11 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import { LoggerService } from './logger.service';
+import { ProfileService } from './profile.service';
 import { Product, CreateProductDto, UpdateProductDto } from '../models';
 import { environment } from '../../../environments/environment';
 
 const CTX = 'ProductsService';
-const MAX_PRODUCTS_PER_USER = 5;
+const MAX_PRODUCTS_FREE = 5;
+const MAX_PRODUCTS_PREMIUM = 25;
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +17,7 @@ export class ProductsService {
   private readonly supabase = inject(SupabaseService);
   private readonly auth = inject(AuthService);
   private readonly logger = inject(LoggerService);
+  private readonly profileService = inject(ProfileService);
 
   async getProducts(): Promise<Product[]> {
     const userId = this.auth.user()?.id;
@@ -74,10 +77,15 @@ export class ProductsService {
       throw countError;
     }
 
-    if ((existingCount ?? 0) >= MAX_PRODUCTS_PER_USER) {
-      throw new Error(
-        `Límite de ${MAX_PRODUCTS_PER_USER} productos alcanzado. Elimina uno antes de añadir otro.`,
-      );
+    const profile = await this.profileService.getProfile();
+    const isPremium = profile?.plan === 'premium';
+    const limit = isPremium ? MAX_PRODUCTS_PREMIUM : MAX_PRODUCTS_FREE;
+
+    if ((existingCount ?? 0) >= limit) {
+      const msg = isPremium
+        ? `Límite de ${MAX_PRODUCTS_PREMIUM} productos alcanzado.`
+        : `Límite de ${MAX_PRODUCTS_FREE} productos alcanzado en el plan gratuito. Actualiza a Premium para añadir hasta ${MAX_PRODUCTS_PREMIUM}.`;
+      throw new Error(msg);
     }
 
     const scrapeUrl = `${environment.apiUrl}/api/scrape`;

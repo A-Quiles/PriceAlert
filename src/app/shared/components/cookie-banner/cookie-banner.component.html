@@ -1,0 +1,77 @@
+@if (consent.status() === "pending") {
+  <div
+    class="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 animate-fade-in"
+    role="dialog"
+    aria-labelledby="cookie-title"
+    aria-describedby="cookie-desc"
+  >
+    <div
+      class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-5 sm:p-6"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+        <!-- Icon -->
+        <div class="flex-shrink-0">
+          <div
+            class="w-10 h-10 bg-brand-100 dark:bg-brand-900/30 rounded-xl flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-brand-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Text -->
+        <div class="flex-1 min-w-0">
+          <h2
+            id="cookie-title"
+            class="text-base font-semibold text-gray-900 dark:text-white mb-1"
+          >
+            Usamos cookies
+          </h2>
+          <p
+            id="cookie-desc"
+            class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+          >
+            Solo utilizamos cookies
+            <strong>estrictamente necesarias</strong> para el funcionamiento de
+            la autenticación y la interfaz. No usamos cookies publicitarias ni
+            de rastreo entre sitios.
+            <a
+              routerLink="/legal/cookies"
+              class="text-brand-600 hover:underline ml-1"
+              >Más información</a
+            >
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+          <button
+            type="button"
+            (click)="consent.acceptEssential()"
+            class="btn-secondary btn-sm whitespace-nowrap"
+          >
+            Solo esenciales
+          </button>
+          <button
+            type="button"
+            (click)="consent.acceptAll()"
+            class="btn-primary btn-sm whitespace-nowrap"
+          >
+            Aceptar todo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

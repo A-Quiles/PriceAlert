@@ -9,9 +9,12 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { Plan } from '../../core/models/user.model';
 
 function matchFields(a: string, b: string): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
@@ -30,11 +33,13 @@ function matchFields(a: string, b: string): ValidatorFn {
 export class SettingsComponent implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
   readonly auth = inject(AuthService);
 
   // ── Profile ──────────────────────────────────────────────────────────────
   readonly loading = signal(true);
   readonly saving = signal(false);
+  readonly currentPlan = signal<Plan>('free');
   readonly profileForm = new FormGroup({
     full_name: new FormControl<string | null>(null, Validators.required),
     email_notifications: new FormControl<boolean>(true),
@@ -74,6 +79,10 @@ export class SettingsComponent implements OnInit {
     return this.auth.user()?.email ?? '';
   }
 
+  navigateToPricing(): void {
+    void this.router.navigate(['/precios']);
+  }
+
   ngOnInit(): void {
     void this.loadProfile();
   }
@@ -90,6 +99,7 @@ export class SettingsComponent implements OnInit {
         full_name: profile.full_name,
         email_notifications: profile.email_notifications,
       });
+      this.currentPlan.set(profile.plan ?? 'free');
     } catch {
       this.toast.error('Error al cargar la configuración');
     } finally {

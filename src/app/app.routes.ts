@@ -4,6 +4,18 @@ import { authGuard, publicGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   {
+    path: 'legal',
+    loadChildren: () =>
+      import('./features/legal/legal.routes').then((m) => m.LEGAL_ROUTES),
+  },
+  {
+    path: 'precios',
+    loadComponent: () =>
+      import('./features/pricing/pricing.component').then(
+        (m) => m.PricingComponent,
+      ),
+  },
+  {
     path: 'auth',
     canActivate: [publicGuard],
     loadChildren: () =>

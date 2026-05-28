@@ -72,6 +72,31 @@ import('./api/check-prices')
     console.error('[DEV SERVER] Error cargando api/check-prices:', err);
   });
 
+// POST /api/create-checkout-session  (Stripe)
+import('./api/create-checkout-session')
+  .then(({ default: checkoutHandler }) => {
+    app.post('/api/create-checkout-session', wrapHandler(checkoutHandler));
+    console.log('[DEV SERVER] Ruta registrada: POST /api/create-checkout-session');
+  })
+  .catch((err: unknown) => {
+    console.error('[DEV SERVER] Error cargando api/create-checkout-session:', err);
+  });
+
+// POST /api/stripe-webhook  (Stripe)
+import('./api/stripe-webhook')
+  .then(({ default: webhookHandler }) => {
+    // Necesita el body como Buffer para verificar la firma
+    app.post(
+      '/api/stripe-webhook',
+      express.raw({ type: 'application/json' }),
+      wrapHandler(webhookHandler),
+    );
+    console.log('[DEV SERVER] Ruta registrada: POST /api/stripe-webhook');
+  })
+  .catch((err: unknown) => {
+    console.error('[DEV SERVER] Error cargando api/stripe-webhook:', err);
+  });
+
 // ── Error handler global ────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

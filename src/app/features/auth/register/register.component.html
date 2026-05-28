@@ -168,6 +168,55 @@
             }
           </div>
 
+          <!-- Terms consent (required) -->
+          <div class="space-y-3 pt-2">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="acceptTerms"
+                class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+              />
+              <span class="text-sm text-gray-600">
+                He leído y acepto los
+                <a
+                  routerLink="/legal/terminos"
+                  target="_blank"
+                  class="text-brand-600 font-medium hover:underline"
+                  >Términos y Condiciones</a
+                >
+                y la
+                <a
+                  routerLink="/legal/privacidad"
+                  target="_blank"
+                  class="text-brand-600 font-medium hover:underline"
+                  >Política de Privacidad</a
+                >
+                <span class="text-danger-600 ml-1">*</span>
+              </span>
+            </label>
+            @if (
+              form.get("acceptTerms")?.invalid &&
+              form.get("acceptTerms")?.touched
+            ) {
+              <p class="form-error ml-7">
+                Debes aceptar los términos para continuar
+              </p>
+            }
+
+            <!-- Marketing (optional) -->
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="acceptMarketing"
+                class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+              />
+              <span class="text-sm text-gray-500">
+                Acepto recibir comunicaciones comerciales y novedades del
+                servicio (opcional)
+              </span>
+            </label>
+          </div>
+
           <!-- Submit -->
           <button
             type="submit"

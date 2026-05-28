@@ -42,6 +42,8 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
+      acceptTerms: [false, [Validators.requiredTrue]],
+      acceptMarketing: [false],
     },
     { validators: passwordMatchValidator },
   );

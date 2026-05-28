@@ -1,0 +1,76 @@
+<footer
+  class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-auto"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+    >
+      <!-- Brand -->
+      <div class="flex items-center gap-2">
+        <div
+          class="w-6 h-6 bg-brand-600 rounded flex items-center justify-center"
+        >
+          <svg
+            class="w-3.5 h-3.5 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+            />
+          </svg>
+        </div>
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Price<span class="text-brand-600">Alert</span>
+        </span>
+        <span class="text-xs text-gray-400 dark:text-gray-500"
+          >© {{ year }}</span
+        >
+      </div>
+
+      <!-- Legal links -->
+      <nav class="flex flex-wrap gap-x-5 gap-y-1" aria-label="Legal">
+        <a
+          routerLink="/precios"
+          class="text-xs text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+        >
+          Precios
+        </a>
+        <a
+          routerLink="/legal/aviso-legal"
+          class="text-xs text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+        >
+          Aviso Legal
+        </a>
+        <a
+          routerLink="/legal/privacidad"
+          class="text-xs text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+        >
+          Privacidad
+        </a>
+        <a
+          routerLink="/legal/terminos"
+          class="text-xs text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+        >
+          Términos
+        </a>
+        <a
+          routerLink="/legal/cookies"
+          class="text-xs text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+        >
+          Cookies
+        </a>
+        <a
+          routerLink="/legal/cancelacion"
+          class="text-xs text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+        >
+          Cancelación
+        </a>
+      </nav>
+    </div>
+  </div>
+</footer>

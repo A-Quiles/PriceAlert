@@ -297,7 +297,7 @@
         </a>
         <div class="border-t border-gray-100 pt-2 mt-2">
           <div class="px-3 py-2 text-xs text-gray-500">
-            {{ auth.user()?.email }}
+            {{ userName() }}
           </div>
           <button
             (click)="signOut(); closeMenu()"

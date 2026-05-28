@@ -33,6 +33,7 @@
 - [Contribuir](#-contribuir)
 - [Licencia](#-licencia)
 - [Aviso legal](#-aviso-legal)
+- [Cumplimiento legal y suscripciones](#️-cumplimiento-legal-y-suscripciones-rama-featurelegal-and-payments)
 
 ---
 
@@ -516,6 +517,108 @@ price-alert/
 ├── tsconfig.json
 └── vercel.json
 ```
+
+---
+
+## ⚖️ Cumplimiento legal y suscripciones (rama `feature/legal-and-payments`)
+
+Esta rama añade toda la infraestructura legal y de pagos necesaria para operar PriceAlert como un servicio con suscripción de pago en España / Unión Europea, cumpliendo con la **LSSI-CE**, el **RGPD** y el **RDL 1/2007**.
+
+### Páginas legales
+
+Se han creado cinco páginas accesibles públicamente bajo la ruta `/legal/`:
+
+| Ruta                       | Contenido                                                                                     |
+| -------------------------- | --------------------------------------------------------------------------------------------- |
+| `/legal/aviso-legal`       | Aviso Legal (LSSI-CE): identificación del titular, domicilio y datos de contacto              |
+| `/legal/privacidad`        | Política de Privacidad (RGPD): base jurídica, datos recogidos, encargados del tratamiento, derechos ARCO+ |
+| `/legal/terminos`          | Términos y Condiciones: descripción de planes, obligaciones, limitación de responsabilidad    |
+| `/legal/cookies`           | Política de Cookies: tabla de cookies esenciales usadas (sin cookies publicitarias)           |
+| `/legal/cancelacion`       | Política de Cancelación y Reembolsos: garantía de 14 días, cancelación en cualquier momento  |
+
+> ⚠️ Los campos `[NOMBRE_TITULAR]`, `[NIF_TITULAR]`, `[DIRECCIÓN_COMPLETA]` y `[EMAIL_CONTACTO]` son marcadores de posición que **debes rellenar** con los datos reales del titular antes de publicar.
+
+---
+
+### Banner de cookies y consentimiento (RGPD)
+
+- Se muestra un **banner fijo** en la parte inferior al primer acceso, antes de registrarse.
+- El usuario puede elegir entre **"Solo esenciales"** o **"Aceptar todo"**.
+- La elección se persiste en `localStorage` bajo la clave `pricealert_cookie_consent`.
+- Las cookies usadas son exclusivamente **esenciales** (sesión de Supabase, tema y preferencia de cookies); no se usan cookies publicitarias ni de terceros.
+
+---
+
+### Consentimiento en el registro
+
+El formulario de registro incorpora dos nuevas casillas antes del botón de envío:
+
+- ☑️ **Obligatoria:** aceptación de los Términos y Condiciones y la Política de Privacidad (impide el registro si no se marca).
+- ☐ **Opcional:** consentimiento para recibir comunicaciones de marketing por email.
+
+---
+
+### Planes de suscripción
+
+| Plan          | Precio        | Productos máx. | Alertas   |
+| ------------- | ------------- | -------------- | --------- |
+| **Gratuito**  | 0 €/mes       | 5              | Ilimitadas|
+| **Premium**   | 4,99 €/mes    | 25             | Ilimitadas + soporte prioritario |
+
+Los límites se aplican dinámicamente en `products.service.ts`: el plan se lee del perfil del usuario en cada intento de añadir un producto.
+
+---
+
+### Integración con Stripe
+
+El flujo de pago usa **Stripe Checkout** (hosted), de forma que ningún dato de tarjeta pasa por la aplicación (sin requisitos PCI-DSS propios).
+
+**Nuevos endpoints serverless:**
+
+| Método | Ruta                            | Descripción                                                                  |
+| ------ | ------------------------------- | ---------------------------------------------------------------------------- |
+| `POST` | `/api/create-checkout-session`  | Busca o crea el cliente de Stripe, crea una sesión de pago y devuelve la URL |
+| `POST` | `/api/stripe-webhook`           | Recibe eventos de Stripe y actualiza el plan del usuario en Supabase         |
+
+**Eventos de Stripe manejados:**
+
+| Evento                             | Acción                                              |
+| ---------------------------------- | --------------------------------------------------- |
+| `checkout.session.completed`       | Activa el plan Premium y guarda IDs de Stripe       |
+| `customer.subscription.deleted`    | Degrada al plan Gratuito y limpia el ID             |
+| `customer.subscription.updated`    | Sincroniza el estado del plan (activo / cancelado)  |
+
+**Variables de entorno adicionales necesarias:**
+
+| Variable               | Descripción                                             |
+| ---------------------- | ------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`    | Clave secreta de Stripe (`sk_live_...` o `sk_test_...`) |
+| `STRIPE_PRICE_ID`      | ID del precio recurrente creado en el dashboard Stripe  |
+| `STRIPE_WEBHOOK_SECRET`| Signing secret del webhook (`whsec_...`)                |
+| `APP_URL`              | URL base de la app (ej: `https://tudominio.com`)        |
+
+---
+
+### Migración de base de datos
+
+Ejecuta `supabase/migrations/002_add_subscription.sql` en **Supabase Dashboard > SQL Editor** para añadir las columnas de suscripción a la tabla `profiles`:
+
+```sql
+ALTER TABLE profiles
+  ADD COLUMN plan TEXT NOT NULL DEFAULT 'free',
+  ADD COLUMN stripe_customer_id TEXT,
+  ADD COLUMN stripe_subscription_id TEXT;
+```
+
+---
+
+### Pasos de configuración de Stripe (resumen)
+
+1. Crea una cuenta en [dashboard.stripe.com](https://dashboard.stripe.com) (gratuita, sin cuota mensual).
+2. Crea un **Producto** con un precio recurrente de **4,99 €/mes** → copia el `price_XXXX`.
+3. Añade `STRIPE_SECRET_KEY` y `STRIPE_PRICE_ID` a `.env.local` (y a Vercel en producción).
+4. En **Developers > Webhooks**, crea un endpoint apuntando a `https://tudominio.vercel.app/api/stripe-webhook` para los eventos listados arriba.
+5. Copia el signing secret (`whsec_...`) como `STRIPE_WEBHOOK_SECRET`.
 
 ---
 

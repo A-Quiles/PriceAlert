@@ -536,8 +536,6 @@ Se han creado cinco páginas accesibles públicamente bajo la ruta `/legal/`:
 | `/legal/cookies`     | Política de Cookies: tabla de cookies esenciales usadas (sin cookies publicitarias)                       |
 | `/legal/cancelacion` | Política de Cancelación y Reembolsos: garantía de 14 días, cancelación en cualquier momento               |
 
-> ⚠️ Los campos `[NOMBRE_TITULAR]`, `[NIF_TITULAR]`, `[DIRECCIÓN_COMPLETA]` y `[EMAIL_CONTACTO]` son marcadores de posición que **debes rellenar** con los datos reales del titular antes de publicar.
-
 ---
 
 ### Banner de cookies y consentimiento (RGPD)

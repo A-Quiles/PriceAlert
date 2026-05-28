@@ -23,12 +23,5 @@ export const LEGAL_ROUTES: Routes = [
     loadComponent: () =>
       import('./cookies/cookies.component').then((m) => m.CookiesComponent),
   },
-  {
-    path: 'cancelacion',
-    loadComponent: () =>
-      import('./cancellation/cancellation.component').then(
-        (m) => m.CancellationComponent,
-      ),
-  },
   { path: '', redirectTo: 'aviso-legal', pathMatch: 'full' },
 ];

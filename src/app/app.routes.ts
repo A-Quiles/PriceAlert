@@ -9,13 +9,6 @@ export const routes: Routes = [
       import('./features/legal/legal.routes').then((m) => m.LEGAL_ROUTES),
   },
   {
-    path: 'precios',
-    loadComponent: () =>
-      import('./features/pricing/pricing.component').then(
-        (m) => m.PricingComponent,
-      ),
-  },
-  {
     path: 'auth',
     canActivate: [publicGuard],
     loadChildren: () =>
